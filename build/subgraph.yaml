@@ -1,6 +1,6 @@
 specVersion: 0.0.4
 schema:
-  file: ./schema.graphql
+  file: schema.graphql
 dataSources:
   - kind: ethereum
     name: InstaIndex
@@ -19,11 +19,11 @@ dataSources:
         - DSAOwner
       abis:
         - name: InstaIndex
-          file: ./abis/InstaIndex.json
+          file: InstaIndex/abis/InstaIndex.json
       eventHandlers:
         - event: LogAccountCreated(address,indexed address,indexed address,indexed address)
           handler: handleLogAccountCreated
-      file: ./src/insta-index.ts
+      file: InstaIndex/InstaIndex.wasm
   - kind: ethereum/contract
     name: ERC20
     network: mainnet
@@ -42,8 +42,8 @@ dataSources:
         - DSAOwner
       abis:
         - name: ERC20
-          file: ./abis/ERC20.json
+          file: ERC20/abis/ERC20.json
       eventHandlers:
         - event: Approval(indexed address,indexed address,uint256)
           handler: handleApproval
-      file: ./src/erc20.ts
+      file: ERC20/ERC20.wasm

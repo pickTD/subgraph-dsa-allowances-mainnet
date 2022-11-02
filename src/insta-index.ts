@@ -1,67 +1,27 @@
-import { BigInt } from "@graphprotocol/graph-ts"
-import {
-  InstaIndex,
-  LogAccountCreated,
-  LogNewAccount,
-  LogNewCheck,
-  LogNewMaster,
-  LogUpdateMaster
-} from "../generated/InstaIndex/InstaIndex"
-import { ExampleEntity } from "../generated/schema"
+import { LogAccountCreated } from "../generated/InstaIndex/InstaIndex"
+import { DSA, Owner, DSAOwner } from "../generated/schema"
 
 export function handleLogAccountCreated(event: LogAccountCreated): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
-
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (!entity) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
-
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
+  let dsa = DSA.load(event.params.account)
+  if (!dsa) {
+    dsa = new DSA(event.params.account)
+    dsa.address = event.params.account
+    dsa.approvals = []
+    dsa.save()
   }
 
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
+  let owner = Owner.load(event.params.owner)
+  if (!owner) {
+    owner = new Owner(event.params.owner)
+    owner.address = event.params.owner
+    owner.save()
+  }
 
-  // Entity fields can be set based on event parameters
-  entity.sender = event.params.sender
-  entity.owner = event.params.owner
-
-  // Entities can be written to the store with `.save()`
-  entity.save()
-
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.account(...)
-  // - contract.build(...)
-  // - contract.check(...)
-  // - contract.connectors(...)
-  // - contract.isClone(...)
-  // - contract.list(...)
-  // - contract.master(...)
-  // - contract.versionCount(...)
+  let dsaOwner = DSAOwner.load(owner.id.concat(dsa.id))
+  if (!dsaOwner) {
+    dsaOwner = new DSAOwner(owner.id.concat(dsa.id))
+    dsaOwner.DSA = dsa.id
+    dsaOwner.owner = owner.id
+    dsaOwner.save()
+  }
 }
-
-export function handleLogNewAccount(event: LogNewAccount): void {}
-
-export function handleLogNewCheck(event: LogNewCheck): void {}
-
-export function handleLogNewMaster(event: LogNewMaster): void {}
-
-export function handleLogUpdateMaster(event: LogUpdateMaster): void {}
