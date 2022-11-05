@@ -2,7 +2,7 @@ specVersion: 0.0.4
 schema:
   file: schema.graphql
 dataSources:
-  - kind: ethereum
+  - kind: ethereum/contract
     name: InstaIndex
     network: mainnet
     source:
@@ -14,9 +14,7 @@ dataSources:
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - DSA
-        - Owner
-        - DSAOwner
+        - Spender
       abis:
         - name: InstaIndex
           file: InstaIndex/abis/InstaIndex.json
@@ -36,10 +34,7 @@ dataSources:
       language: wasm/assemblyscript
       entities:
         - ApprovalEvent
-        - Token
-        - DSA
-        - Owner
-        - DSAOwner
+        - Spender
       abis:
         - name: ERC20
           file: ERC20/abis/ERC20.json

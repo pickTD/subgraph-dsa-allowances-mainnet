@@ -1,48 +1,30 @@
-import { Bytes } from "@graphprotocol/graph-ts"
 import { Approval } from "../generated/ERC20/ERC20"
-import { Token, ApprovalEvent, Owner, DSA, DSAOwner } from "../generated/schema"
+import { ApprovalEvent, Spender } from "../generated/schema"
 
 export function handleApproval(event: Approval): void {
-  let token = Token.load(event.address)
-  if (!token) {
-    token = new Token(event.address)
-    token.address = event.address
-    token.save()
+  let spender = Spender.load(event.params.spender)
+
+  if (!spender) {
+    spender = new Spender(event.params.spender)
+    spender.address = event.params.spender
+    spender.isDSA = false
+    spender.owners = []
+    spender.approvals = []
   }
 
-  let owner = Owner.load(event.params.owner)
-  if (!owner) {
-    owner = new Owner(event.params.owner)
-    owner.address = event.params.owner
-    owner.save()
+  const approvalEvent = new ApprovalEvent(event.transaction.hash.toHex() + "-" + event.logIndex.toString())
+
+  approvalEvent.token = event.address
+  approvalEvent.owner = event.params.owner
+  approvalEvent.spender = event.params.spender
+  approvalEvent.value = event.params.value
+
+  approvalEvent.save()
+
+  spender.approvals = spender.approvals.concat([approvalEvent.id])
+  if (!spender.owners.includes(event.params.owner)) {
+    spender.owners = spender.owners.concat([event.params.owner])
   }
 
-  let dsa = DSA.load(event.params.spender)
-  if (!dsa) {
-    dsa = new DSA(event.params.spender)
-    dsa.address = event.params.spender
-    dsa.approvals = []
-    dsa.save()
-  }
-
-  let dsaOwner = DSAOwner.load(owner.id.concat(dsa.id))
-  if (!dsaOwner) {
-    dsaOwner = new DSAOwner(owner.id.concat(dsa.id))
-    dsaOwner.DSA = dsa.id
-    dsaOwner.owner = owner.id
-    dsaOwner.save()
-  }
-
-  let approvalEvent = ApprovalEvent.load(event.transaction.hash.concat(new Bytes(event.logIndex.toI32())))
-  if (!approvalEvent) {
-    approvalEvent = new ApprovalEvent(event.transaction.hash.concat(new Bytes(event.logIndex.toI32())))
-    approvalEvent.token = token.id
-    approvalEvent.owner = owner.id
-    approvalEvent.spender = dsa.id
-    approvalEvent.value = event.params.value
-    approvalEvent.save()
-  }
-
-  dsa.approvals.push(approvalEvent.id)
-  dsa.save()
+  spender.save()
 }

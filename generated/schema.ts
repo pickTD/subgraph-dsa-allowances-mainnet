@@ -11,7 +11,7 @@ import {
   BigDecimal
 } from "@graphprotocol/graph-ts";
 
-export class DSA extends Entity {
+export class Spender extends Entity {
   constructor(id: Bytes) {
     super();
     this.set("id", Value.fromBytes(id));
@@ -19,18 +19,18 @@ export class DSA extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save DSA entity without an ID");
+    assert(id != null, "Cannot save Spender entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.BYTES,
-        `Entities of type DSA must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        `Entities of type Spender must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("DSA", id.toBytes().toHexString(), this);
+      store.set("Spender", id.toBytes().toHexString(), this);
     }
   }
 
-  static load(id: Bytes): DSA | null {
-    return changetype<DSA | null>(store.get("DSA", id.toHexString()));
+  static load(id: Bytes): Spender | null {
+    return changetype<Spender | null>(store.get("Spender", id.toHexString()));
   }
 
   get id(): Bytes {
@@ -42,6 +42,23 @@ export class DSA extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
+  get creator(): Bytes | null {
+    let value = this.get("creator");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set creator(value: Bytes | null) {
+    if (!value) {
+      this.unset("creator");
+    } else {
+      this.set("creator", Value.fromBytes(<Bytes>value));
+    }
+  }
+
   get address(): Bytes {
     let value = this.get("address");
     return value!.toBytes();
@@ -49,6 +66,15 @@ export class DSA extends Entity {
 
   set address(value: Bytes) {
     this.set("address", Value.fromBytes(value));
+  }
+
+  get isDSA(): boolean {
+    let value = this.get("isDSA");
+    return value!.toBoolean();
+  }
+
+  set isDSA(value: boolean) {
+    this.set("isDSA", Value.fromBoolean(value));
   }
 
   get owners(): Array<Bytes> {
@@ -60,120 +86,20 @@ export class DSA extends Entity {
     this.set("owners", Value.fromBytesArray(value));
   }
 
-  get approvals(): Array<Bytes> {
+  get approvals(): Array<string> {
     let value = this.get("approvals");
-    return value!.toBytesArray();
+    return value!.toStringArray();
   }
 
-  set approvals(value: Array<Bytes>) {
-    this.set("approvals", Value.fromBytesArray(value));
-  }
-}
-
-export class Owner extends Entity {
-  constructor(id: Bytes) {
-    super();
-    this.set("id", Value.fromBytes(id));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save Owner entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.BYTES,
-        `Entities of type Owner must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
-      );
-      store.set("Owner", id.toBytes().toHexString(), this);
-    }
-  }
-
-  static load(id: Bytes): Owner | null {
-    return changetype<Owner | null>(store.get("Owner", id.toHexString()));
-  }
-
-  get id(): Bytes {
-    let value = this.get("id");
-    return value!.toBytes();
-  }
-
-  set id(value: Bytes) {
-    this.set("id", Value.fromBytes(value));
-  }
-
-  get address(): Bytes {
-    let value = this.get("address");
-    return value!.toBytes();
-  }
-
-  set address(value: Bytes) {
-    this.set("address", Value.fromBytes(value));
-  }
-
-  get DSAs(): Array<Bytes> {
-    let value = this.get("DSAs");
-    return value!.toBytesArray();
-  }
-
-  set DSAs(value: Array<Bytes>) {
-    this.set("DSAs", Value.fromBytesArray(value));
-  }
-}
-
-export class DSAOwner extends Entity {
-  constructor(id: Bytes) {
-    super();
-    this.set("id", Value.fromBytes(id));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save DSAOwner entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.BYTES,
-        `Entities of type DSAOwner must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
-      );
-      store.set("DSAOwner", id.toBytes().toHexString(), this);
-    }
-  }
-
-  static load(id: Bytes): DSAOwner | null {
-    return changetype<DSAOwner | null>(store.get("DSAOwner", id.toHexString()));
-  }
-
-  get id(): Bytes {
-    let value = this.get("id");
-    return value!.toBytes();
-  }
-
-  set id(value: Bytes) {
-    this.set("id", Value.fromBytes(value));
-  }
-
-  get DSA(): Bytes {
-    let value = this.get("DSA");
-    return value!.toBytes();
-  }
-
-  set DSA(value: Bytes) {
-    this.set("DSA", Value.fromBytes(value));
-  }
-
-  get owner(): Bytes {
-    let value = this.get("owner");
-    return value!.toBytes();
-  }
-
-  set owner(value: Bytes) {
-    this.set("owner", Value.fromBytes(value));
+  set approvals(value: Array<string>) {
+    this.set("approvals", Value.fromStringArray(value));
   }
 }
 
 export class ApprovalEvent extends Entity {
-  constructor(id: Bytes) {
+  constructor(id: string) {
     super();
-    this.set("id", Value.fromBytes(id));
+    this.set("id", Value.fromString(id));
   }
 
   save(): void {
@@ -181,26 +107,24 @@ export class ApprovalEvent extends Entity {
     assert(id != null, "Cannot save ApprovalEvent entity without an ID");
     if (id) {
       assert(
-        id.kind == ValueKind.BYTES,
-        `Entities of type ApprovalEvent must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        id.kind == ValueKind.STRING,
+        `Entities of type ApprovalEvent must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("ApprovalEvent", id.toBytes().toHexString(), this);
+      store.set("ApprovalEvent", id.toString(), this);
     }
   }
 
-  static load(id: Bytes): ApprovalEvent | null {
-    return changetype<ApprovalEvent | null>(
-      store.get("ApprovalEvent", id.toHexString())
-    );
+  static load(id: string): ApprovalEvent | null {
+    return changetype<ApprovalEvent | null>(store.get("ApprovalEvent", id));
   }
 
-  get id(): Bytes {
+  get id(): string {
     let value = this.get("id");
-    return value!.toBytes();
+    return value!.toString();
   }
 
-  set id(value: Bytes) {
-    this.set("id", Value.fromBytes(value));
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
   }
 
   get token(): Bytes {
@@ -237,46 +161,5 @@ export class ApprovalEvent extends Entity {
 
   set value(value: BigInt) {
     this.set("value", Value.fromBigInt(value));
-  }
-}
-
-export class Token extends Entity {
-  constructor(id: Bytes) {
-    super();
-    this.set("id", Value.fromBytes(id));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save Token entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.BYTES,
-        `Entities of type Token must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
-      );
-      store.set("Token", id.toBytes().toHexString(), this);
-    }
-  }
-
-  static load(id: Bytes): Token | null {
-    return changetype<Token | null>(store.get("Token", id.toHexString()));
-  }
-
-  get id(): Bytes {
-    let value = this.get("id");
-    return value!.toBytes();
-  }
-
-  set id(value: Bytes) {
-    this.set("id", Value.fromBytes(value));
-  }
-
-  get address(): Bytes {
-    let value = this.get("address");
-    return value!.toBytes();
-  }
-
-  set address(value: Bytes) {
-    this.set("address", Value.fromBytes(value));
   }
 }

@@ -1,31 +1,16 @@
-type DSA @entity {
+type Spender @entity {
   id: Bytes!
+  creator: Bytes
   address: Bytes!
-  owners: [DSAOwner!]! @derivedFrom(field: "DSA")
+  isDSA: Boolean!
+  owners: [Bytes!]!
   approvals: [ApprovalEvent!]!
 }
 
-type Owner @entity {
-  id: Bytes!
-  address: Bytes!
-  DSAs: [DSAOwner!]! @derivedFrom(field: "owner")
-}
-
-type DSAOwner @entity {
-  id: Bytes!
-  DSA: DSA!
-  owner: Owner!
-}
-
 type ApprovalEvent @entity {
-  id: Bytes!
-  token: Token!
-  owner: Owner!
-  spender: DSA!
+  id: String!
+  token: Bytes!
+  owner: Bytes!
+  spender: Bytes!
   value: BigInt!
-}
-
-type Token @entity {
-  id: Bytes!
-  address: Bytes!
 }
